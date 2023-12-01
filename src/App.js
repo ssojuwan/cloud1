@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import AWS from 'aws-sdk';
 
 const App = () => {
   const [formData, setFormData] = useState({
@@ -45,7 +44,6 @@ const App = () => {
   };
 
   const handleSubmit = async () => {
-    // 필수 입력 필드가 비어있을 경우
     if (
       formData.name === '' ||
       formData.department === '' ||
@@ -56,33 +54,21 @@ const App = () => {
       alert('모든 필수 항목을 입력하세요.');
     } else {
       try {
-        // AWS SDK 설정
-        AWS.config.update({
-          region: 'your-dynamodb-region',
-          accessKeyId: 'your-access-key-id',
-          secretAccessKey: 'your-secret-access-key',
-        });
-
-        // DynamoDB DocumentClient 생성
-        const docClient = new AWS.DynamoDB.DocumentClient();
-
-        // DynamoDB에 데이터 쓰기
-        const params = {
-          TableName: 'SurveyResponses', // 이전에 생성한 테이블 이름
-          Item: {
-            UserId: 'unique-user-id', // 고유한 사용자 ID (예: 세션 또는 인증에서 제공)
-            Name: formData.name,
-            Department: formData.department,
-            Grade: formData.grade,
-            Feedback: formData.feedback,
-            SelectedOptions: formData.selectedOptions,
+        const response = await fetch('http://your-server-endpoint/submit-survey', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
           },
-        };
-
-        await docClient.put(params).promise();
-        alert('제출했습니다.');
+          body: JSON.stringify(formData),
+        });
+  
+        if (response.ok) {
+          alert('제출했습니다.');
+        } else {
+          alert('데이터 제출 중 오류가 발생했습니다.');
+        }
       } catch (error) {
-        console.error('Error submitting data to DynamoDB', error);
+        console.error('Error submitting data', error);
         alert('데이터 제출 중 오류가 발생했습니다.');
       }
     }
